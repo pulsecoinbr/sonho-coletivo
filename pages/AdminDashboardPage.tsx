@@ -1,16 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-    CloudHeartIcon, 
-    UsersIcon, 
-    CampaignsIcon, 
-    FinancialIcon, 
-    SettingsIcon,
-    BarChartIcon,
-    ImageIcon,
-    PaletteIcon,
-    MessageSquareIcon
-} from '../components/icons';
+import { CloudHeartIcon, UsersIcon, CampaignsIcon, FinancialIcon, SettingsIcon, BarChartIcon, TrendingUpIcon, TrendingDownIcon } from '../components/icons';
 
 interface AdminStats {
     totalUsers: number;
@@ -130,7 +120,7 @@ const AdminDashboardPage: React.FC = () => {
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-4">
                                 <div className="p-3 bg-blue-100 rounded-full">
-                                    <PaletteIcon className="h-6 w-6 text-blue-600" />
+                                    <SettingsIcon className="h-6 w-6 text-blue-600" />
                                 </div>
                                 <h3 className="ml-4 text-lg font-semibold text-gray-900">Identidade Visual</h3>
                             </div>
@@ -142,7 +132,7 @@ const AdminDashboardPage: React.FC = () => {
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-4">
                                 <div className="p-3 bg-green-100 rounded-full">
-                                    <ImageIcon className="h-6 w-6 text-green-600" />
+                                    <BarChartIcon className="h-6 w-6 text-green-600" />
                                 </div>
                                 <h3 className="ml-4 text-lg font-semibold text-gray-900">Imagens e Banners</h3>
                             </div>
@@ -150,35 +140,11 @@ const AdminDashboardPage: React.FC = () => {
                         </div>
                     </Link>
 
-                    <Link to="/admin/users" className="group">
-                        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                            <div className="flex items-center mb-4">
-                                <div className="p-3 bg-purple-100 rounded-full">
-                                    <UsersIcon className="h-6 w-6 text-purple-600" />
-                                </div>
-                                <h3 className="ml-4 text-lg font-semibold text-gray-900">Usuários</h3>
-                            </div>
-                            <p className="text-gray-600">Gerencie usuários e permissões</p>
-                        </div>
-                    </Link>
-
-                    <Link to="/admin/campaigns" className="group">
-                        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                            <div className="flex items-center mb-4">
-                                <div className="p-3 bg-orange-100 rounded-full">
-                                    <CampaignsIcon className="h-6 w-6 text-orange-600" />
-                                </div>
-                                <h3 className="ml-4 text-lg font-semibold text-gray-900">Campanhas</h3>
-                            </div>
-                            <p className="text-gray-600">Gerencie campanhas de vaquinha</p>
-                        </div>
-                    </Link>
-
                     <Link to="/admin/donations" className="group">
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-4">
-                                <div className="p-3 bg-red-100 rounded-full">
-                                    <FinancialIcon className="h-6 w-6 text-red-600" />
+                                <div className="p-3 bg-purple-100 rounded-full">
+                                    <FinancialIcon className="h-6 w-6 text-purple-600" />
                                 </div>
                                 <h3 className="ml-4 text-lg font-semibold text-gray-900">Doações</h3>
                             </div>
@@ -189,8 +155,8 @@ const AdminDashboardPage: React.FC = () => {
                     <Link to="/admin/analytics" className="group">
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-4">
-                                <div className="p-3 bg-indigo-100 rounded-full">
-                                    <BarChartIcon className="h-6 w-6 text-indigo-600" />
+                                <div className="p-3 bg-orange-100 rounded-full">
+                                    <BarChartIcon className="h-6 w-6 text-orange-600" />
                                 </div>
                                 <h3 className="ml-4 text-lg font-semibold text-gray-900">Estatísticas</h3>
                             </div>
