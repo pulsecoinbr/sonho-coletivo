@@ -4,6 +4,9 @@ import axios from 'axios';
 const SAFE2PAY_API_KEY = process.env.SAFE2PAY_API_KEY || '';
 const SAFE2PAY_SECRET_KEY = process.env.SAFE2PAY_SECRET_KEY || '';
 
+console.log('Safe2Pay API Key:', SAFE2PAY_API_KEY ? 'Set' : 'Not set');
+console.log('Safe2Pay Secret Key:', SAFE2PAY_SECRET_KEY ? 'Set' : 'Not set');
+
 const api = axios.create({
   baseURL: 'https://api.safe2pay.com.br/v2', // Production URL
   headers: {
@@ -69,10 +72,25 @@ export interface BoletoPaymentData {
 
 export const createBoletoPayment = async (data: BoletoPaymentData): Promise<Safe2PayResponse> => {
   try {
+    console.log('Sending Safe2Pay request:', JSON.stringify(data, null, 2));
+    
     const response = await sandboxApi.post('/Payment', data);
+    console.log('Safe2Pay response:', response.data);
+    
     return response.data;
   } catch (error: any) {
-    console.error('Error creating boleto payment:', error.response?.data || error.message);
+    console.error('Error creating boleto payment:', error);
+    
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+      console.error('Error response headers:', error.response.headers);
+    } else if (error.request) {
+      console.error('Error request:', error.request);
+    } else {
+      console.error('Error message:', error.message);
+    }
+    
     throw error;
   }
 };

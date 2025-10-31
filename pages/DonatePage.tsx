@@ -135,13 +135,11 @@ const DonatePage: React.FC = () => {
         Reference: `DONATION_${campaign.id}_${Date.now()}`
       };
 
-      // Log the request for debugging
-      console.log('Sending Safe2Pay request:', JSON.stringify(paymentData, null, 2));
+      console.log('Payment data prepared:', paymentData);
 
       const response: Safe2PayResponse = await createBoletoPayment(paymentData);
       
-      // Log the response for debugging
-      console.log('Safe2Pay response:', response);
+      console.log('Safe2Pay response received:', response);
       
       if (response.HasError) {
         setPaymentError(response.Message || 'Erro ao gerar boleto. Por favor, tente novamente.');
@@ -178,7 +176,6 @@ const DonatePage: React.FC = () => {
 
       // Store reference and transaction ID for future reconciliation
       if (response.ResponseDetail.Id) {
-        // In a real app, you would store this in your database
         console.log('Transaction ID:', response.ResponseDetail.Id);
         console.log('Reference:', paymentData.Reference);
       }
