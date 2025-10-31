@@ -74,6 +74,7 @@ export interface Donation {
   paymentMethod: PaymentMethod;
   message?: string;
   isAnonymous?: boolean;
+  boletoLink?: string;
 }
 
 export interface Testimonial {

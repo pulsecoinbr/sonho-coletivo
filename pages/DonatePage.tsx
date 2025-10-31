@@ -4,6 +4,7 @@ import { AppContext } from '../context';
 import InputField from '../components/InputField';
 import { CreditCardIcon, BarcodeIcon, ArrowLeftIcon, CheckCircleIcon } from '../components/icons';
 import { Campaign, PaymentMethod, Donation } from '../types';
+import { createBoletoPayment, createCreditCardPayment, Safe2PayResponse } from '../services/safe2pay';
 
 const DonatePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,7 @@ const DonatePage: React.FC = () => {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [paymentError, setPaymentError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [boletoLink, setBoletoLink] = useState('');
 
   const [formData, setFormData] = useState({
     name: '', cpf: '', phone: '', email: '', isAnonymous: false, isCompany: false,
@@ -90,33 +92,92 @@ const DonatePage: React.FC = () => {
     setIsSubmitting(true);
     setPaymentError('');
 
-    await new Promise(resolve => setTimeout(resolve, 1500)); 
+    try {
+      if (paymentMethod === 'boleto') {
+        // Process boleto payment
+        const boletoData = {
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3 days from now
+          amount: Number(amount),
+          description: `Doação para campanha: ${campaign?.title}`,
+          reference: `DONATION_${campaign?.id}_${Date.now()}`,
+          customer: {
+            name: formData.name,
+            cpfCnpj: formData.cpf.replace(/\D/g, ''),
+            address: formData.street,
+            number: formData.number,
+            complement: formData.complement,
+            district: formData.district,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zip.replace(/\D/g, ''),
+            email: formData.email,
+            phone: formData.phone.replace(/\D/g, ''),
+          }
+        };
 
-    if (paymentMethod === 'credit_card' && formData.cardCvv === '123') {
-        setPaymentError('Não foi possível processar a doação. Dados do cartão inválidos. Verifique as informações.');
-        setIsSubmitting(false);
-        return;
-    }
-    
-    const donationData: Donation = {
-        campaignId: campaign!.id,
-        amount: Number(amount),
-        donor: {
+        const response: Safe2PayResponse = await createBoletoPayment(boletoData);
+        
+        if (response.HasError) {
+          setPaymentError(response.Message || 'Erro ao gerar boleto. Por favor, tente novamente.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        setBoletoLink(response.ResponseDetail.LinkBoleto || '');
+        setStep(6); // Boleto success page
+      } else {
+        // Process credit card payment
+        const cardData = {
+          amount: Number(amount),
+          description: `Doação para campanha: ${campaign?.title}`,
+          reference: `DONATION_${campaign?.id}_${Date.now()}`,
+          customer: {
+            name: formData.name,
+            cpfCnpj: formData.cpf.replace(/\D/g, ''),
+            email: formData.email,
+            phone: formData.phone.replace(/\D/g, ''),
+          },
+          paymentMethod: {
+            cardNumber: formData.cardNumber.replace(/\s/g, ''),
+            holder: formData.cardName,
+            validate: formData.cardExpiry,
+            cvv: formData.cardCvv,
+          }
+        };
+
+        const response: Safe2PayResponse = await createCreditCardPayment(cardData);
+        
+        if (response.HasError) {
+          setPaymentError(response.Message || 'Erro no processamento do cartão. Verifique os dados e tente novamente.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        // If successful, save donation and show success
+        const donationData: Donation = {
+          campaignId: campaign!.id,
+          amount: Number(amount),
+          donor: {
             name: formData.name, email: formData.email, phone: formData.phone, cpf: formData.cpf,
             address: {
-                zip: formData.zip, street: formData.street, number: formData.number,
-                complement: formData.complement, district: formData.district,
-                city: formData.city, state: formData.state,
+              zip: formData.zip, street: formData.street, number: formData.number,
+              complement: formData.complement, district: formData.district,
+              city: formData.city, state: formData.state,
             },
-        },
-        paymentMethod: paymentMethod,
-        message: message,
-        isAnonymous: formData.isAnonymous,
-    };
-    
-    addDonation(donationData);
-    setStep(5);
-    setIsSubmitting(false);
+          },
+          paymentMethod: paymentMethod,
+          message: message,
+          isAnonymous: formData.isAnonymous,
+        };
+        
+        addDonation(donationData);
+        setStep(5); // Success page
+      }
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      setPaymentError('Erro ao processar pagamento. Por favor, tente novamente.');
+      setIsSubmitting(false);
+    }
   };
   
   if (!campaign) return <div>Carregando...</div>;
@@ -234,13 +295,35 @@ const DonatePage: React.FC = () => {
             </div>
           </form>
         );
-      case 5: // Success
+      case 5: // Credit Card Success
         return (
           <div className="text-center py-10">
             <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-800">Obrigado pela sua doação!</h2>
             <p className="text-gray-600 mt-2">Sua contribuição foi processada com sucesso. Você receberá uma confirmação por e-mail.</p>
             <p className="mt-4 text-sm">Redirecionando para a página da campanha...</p>
+          </div>
+        );
+      case 6: // Boleto Success
+        return (
+          <div className="text-center py-10">
+            <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-800">Obrigado pela sua doação!</h2>
+            <p className="text-gray-600 mt-2">Seu boleto foi gerado com sucesso.</p>
+            <p className="text-gray-600 mt-2">Clique no botão abaixo para acessar e imprimir seu boleto.</p>
+            
+            {boletoLink && (
+              <a 
+                href={boletoLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="mt-6 inline-block px-6 py-3 bg-brand-accent text-white font-bold rounded-md hover:opacity-90 transition-opacity"
+              >
+                Acessar Boleto
+              </a>
+            )}
+            
+            <p className="mt-4 text-sm">Você também receberá o link por e-mail.</p>
           </div>
         );
       default: return null;
