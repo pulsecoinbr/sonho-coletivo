@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // In a real application, these would come from environment variables
-const SAFE2PAY_API_KEY = process.env.SAFE2PAY_API_KEY || '';
+const SAFE2PAY_API_KEY = F26275FC18CD4A49B759561CE8FA423Eprocess.env.SAFE2PAY_API_KEY || '';
 const SAFE2PAY_SECRET_KEY = process.env.SAFE2PAY_SECRET_KEY || '';
 
 const api = axios.create({
