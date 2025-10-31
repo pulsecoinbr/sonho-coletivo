@@ -65,8 +65,8 @@ export const createBoletoPayment = async (data: BoletoPaymentData): Promise<Safe
   try {
     console.log('Sending Safe2Pay request:', JSON.stringify(data, null, 2));
     
-    // Corrigido: endpoint correto para boletos na Safe2Pay
-    const response = await sandboxApi.post('/Boleto', data);
+    // Corrigido: endpoint correto para boletos na Safe2Pay é /BoletoGerar
+    const response = await sandboxApi.post('/BoletoGerar', data);
     console.log('Safe2Pay response:', response.data);
     
     return response.data;
