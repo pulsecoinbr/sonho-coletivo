@@ -7,15 +7,6 @@ const SAFE2PAY_SECRET_KEY = process.env.SAFE2PAY_SECRET_KEY || '';
 console.log('Safe2Pay API Key:', SAFE2PAY_API_KEY ? 'Set' : 'Not set');
 console.log('Safe2Pay Secret Key:', SAFE2PAY_SECRET_KEY ? 'Set' : 'Not set');
 
-const api = axios.create({
-  baseURL: 'https://api.safe2pay.com.br/v2', // Production URL
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': SAFE2PAY_API_KEY,
-  },
-});
-
-// For sandbox testing
 const sandboxApi = axios.create({
   baseURL: 'https://api.safe2pay.com.br/v2', // Sandbox URL
   headers: {
@@ -74,7 +65,8 @@ export const createBoletoPayment = async (data: BoletoPaymentData): Promise<Safe
   try {
     console.log('Sending Safe2Pay request:', JSON.stringify(data, null, 2));
     
-    const response = await sandboxApi.post('/Payment', data);
+    // Corrigido: endpoint correto para boletos na Safe2Pay
+    const response = await sandboxApi.post('/Boleto', data);
     console.log('Safe2Pay response:', response.data);
     
     return response.data;
