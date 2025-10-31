@@ -4,7 +4,7 @@ import { AppContext } from '../context';
 import InputField from '../components/InputField';
 import { CreditCardIcon, BarcodeIcon, ArrowLeftIcon, CheckCircleIcon } from '../components/icons';
 import { Campaign, PaymentMethod, Donation } from '../types';
-import { createBoletoPayment, createCreditCardPayment, Safe2PayResponse } from '../services/safe2pay';
+import { createBoletoPayment, Safe2PayResponse, BoletoPaymentData } from '../services/safe2pay';
 
 const DonatePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,17 +14,17 @@ const DonatePage: React.FC = () => {
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState<number | ''>('');
   const [customAmount, setCustomAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit_card');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('boleto'); // Default to boleto
   const [message, setMessage] = useState('');
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [paymentError, setPaymentError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [boletoLink, setBoletoLink] = useState('');
+  const [digitableLine, setDigitableLine] = useState('');
 
   const [formData, setFormData] = useState({
     name: '', cpf: '', phone: '', email: '', isAnonymous: false, isCompany: false,
     zip: '', state: '', city: '', district: '', street: '', number: '', complement: '',
-    cardNumber: '', cardName: '', cardExpiry: '', cardCvv: '',
   });
 
   useEffect(() => {
@@ -93,86 +93,105 @@ const DonatePage: React.FC = () => {
     setPaymentError('');
 
     try {
-      if (paymentMethod === 'boleto') {
-        // Process boleto payment
-        const boletoData = {
-          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3 days from now
-          amount: Number(amount),
-          description: `Doação para campanha: ${campaign?.title}`,
-          reference: `DONATION_${campaign?.id}_${Date.now()}`,
-          customer: {
-            name: formData.name,
-            cpfCnpj: formData.cpf.replace(/\D/g, ''),
-            address: formData.street,
-            number: formData.number,
-            complement: formData.complement,
-            district: formData.district,
-            city: formData.city,
-            state: formData.state,
-            zipCode: formData.zip.replace(/\D/g, ''),
-            email: formData.email,
-            phone: formData.phone.replace(/\D/g, ''),
-          }
-        };
-
-        const response: Safe2PayResponse = await createBoletoPayment(boletoData);
-        
-        if (response.HasError) {
-          setPaymentError(response.Message || 'Erro ao gerar boleto. Por favor, tente novamente.');
-          setIsSubmitting(false);
-          return;
-        }
-
-        setBoletoLink(response.ResponseDetail.LinkBoleto || '');
-        setStep(6); // Boleto success page
-      } else {
-        // Process credit card payment
-        const cardData = {
-          amount: Number(amount),
-          description: `Doação para campanha: ${campaign?.title}`,
-          reference: `DONATION_${campaign?.id}_${Date.now()}`,
-          customer: {
-            name: formData.name,
-            cpfCnpj: formData.cpf.replace(/\D/g, ''),
-            email: formData.email,
-            phone: formData.phone.replace(/\D/g, ''),
-          },
-          paymentMethod: {
-            cardNumber: formData.cardNumber.replace(/\s/g, ''),
-            holder: formData.cardName,
-            validate: formData.cardExpiry,
-            cvv: formData.cardCvv,
-          }
-        };
-
-        const response: Safe2PayResponse = await createCreditCardPayment(cardData);
-        
-        if (response.HasError) {
-          setPaymentError(response.Message || 'Erro no processamento do cartão. Verifique os dados e tente novamente.');
-          setIsSubmitting(false);
-          return;
-        }
-
-        // If successful, save donation and show success
-        const donationData: Donation = {
-          campaignId: campaign!.id,
-          amount: Number(amount),
-          donor: {
-            name: formData.name, email: formData.email, phone: formData.phone, cpf: formData.cpf,
-            address: {
-              zip: formData.zip, street: formData.street, number: formData.number,
-              complement: formData.complement, district: formData.district,
-              city: formData.city, state: formData.state,
-            },
-          },
-          paymentMethod: paymentMethod,
-          message: message,
-          isAnonymous: formData.isAnonymous,
-        };
-        
-        addDonation(donationData);
-        setStep(5); // Success page
+      if (!campaign) {
+        setPaymentError('Campanha não encontrada.');
+        setIsSubmitting(false);
+        return;
       }
+
+      // Prepare Safe2Pay payment data
+      const paymentData: BoletoPaymentData = {
+        IsSandbox: true,
+        Customer: {
+          Name: formData.name,
+          Identity: formData.cpf.replace(/\D/g, ''),
+          Email: formData.email,
+          Phone: formData.phone.replace(/\D/g, ''),
+          Address: {
+            ZipCode: formData.zip.replace(/\D/g, ''),
+            Street: formData.street,
+            Number: formData.number,
+            District: formData.district,
+            CityName: formData.city,
+            StateInitials: formData.state,
+            CountryName: "Brasil"
+          }
+        },
+        Products: [
+          {
+            Description: "Donation",
+            UnitPrice: Number(amount),
+            Quantity: 1
+          }
+        ],
+        PaymentObject: {
+          DueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'),
+          Instruction: "Payable until the due date.",
+          CancelAfterDue: true
+        },
+        PaymentMethod: "1", // 1 for boleto
+        Application: "Sonho Coletivo",
+        CallbackUrl: "https://sonhocoletivo.com.br/api/callback/safe2pay",
+        Reference: `DONATION_${campaign.id}_${Date.now()}`
+      };
+
+      // Log the request for debugging
+      console.log('Sending Safe2Pay request:', JSON.stringify(paymentData, null, 2));
+
+      const response: Safe2PayResponse = await createBoletoPayment(paymentData);
+      
+      // Log the response for debugging
+      console.log('Safe2Pay response:', response);
+      
+      if (response.HasError) {
+        setPaymentError(response.Message || 'Erro ao gerar boleto. Por favor, tente novamente.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Save donation data
+      const donationData: Donation = {
+        campaignId: campaign.id,
+        amount: Number(amount),
+        donor: {
+          name: formData.name, 
+          email: formData.email, 
+          phone: formData.phone, 
+          cpf: formData.cpf,
+          address: {
+            zip: formData.zip, 
+            street: formData.street, 
+            number: formData.number,
+            complement: formData.complement, 
+            district: formData.district,
+            city: formData.city, 
+            state: formData.state,
+          },
+        },
+        paymentMethod: 'boleto',
+        message: message,
+        isAnonymous: formData.isAnonymous,
+        boletoLink: response.ResponseDetail.LinkBoleto,
+      };
+      
+      addDonation(donationData);
+
+      // Store reference and transaction ID for future reconciliation
+      if (response.ResponseDetail.Id) {
+        // In a real app, you would store this in your database
+        console.log('Transaction ID:', response.ResponseDetail.Id);
+        console.log('Reference:', paymentData.Reference);
+      }
+
+      // Set boleto link and digitable line if available
+      if (response.ResponseDetail.LinkBoleto) {
+        setBoletoLink(response.ResponseDetail.LinkBoleto);
+      }
+      if (response.ResponseDetail.DigitableLine) {
+        setDigitableLine(response.ResponseDetail.DigitableLine);
+      }
+
+      setStep(5); // Success page
     } catch (error: any) {
       console.error('Payment error:', error);
       setPaymentError('Erro ao processar pagamento. Por favor, tente novamente.');
@@ -218,10 +237,6 @@ const DonatePage: React.FC = () => {
                     <label htmlFor="isAnonymous" className="ml-2 text-sm text-gray-600">Não divulgar meu nome na lista de doadores.</label>
                 </div>
                 <InputField id="email" label="E-mail *" name="email" type="email" value={formData.email} onChange={handleFormChange} required placeholder="Informe o seu melhor e-mail"/>
-                <div className="flex items-center">
-                    <input type="checkbox" id="isCompany" name="isCompany" checked={formData.isCompany} onChange={handleFormChange} className="h-4 w-4 text-brand-accent border-gray-300 rounded focus:ring-brand-accent" />
-                    <label htmlFor="isCompany" className="ml-2 text-sm text-gray-600">Quero doar em nome da minha empresa.</label>
-                </div>
                 <div className="flex justify-between pt-4">
                     <button onClick={() => setStep(1)} className="px-6 py-2 bg-gray-200 text-gray-700 font-bold rounded-md hover:bg-gray-300">Voltar</button>
                     <button onClick={() => setStep(3)} className="px-6 py-2 bg-brand-accent text-white font-bold rounded-md hover:opacity-90">Próximo Passo</button>
@@ -251,35 +266,24 @@ const DonatePage: React.FC = () => {
                 </div>
             </div>
         );
-       case 4: // Payment
+      case 4: // Payment Method Selection
         return (
-          <form onSubmit={processDonation}>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Pagamento</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Forma de Pagamento</h2>
             <div className="grid grid-cols-2 gap-4 mb-6">
-                <button type="button" onClick={() => setPaymentMethod('credit_card')} className={`flex flex-col items-center justify-center p-4 border rounded-lg ${paymentMethod === 'credit_card' ? 'border-brand-accent ring-2 ring-brand-accent' : 'border-gray-300'}`}>
-                    <CreditCardIcon className="h-8 w-8 text-gray-600 mb-2" /> <span className="font-semibold">Cartão</span>
-                </button>
-                <button type="button" onClick={() => setPaymentMethod('boleto')} className={`flex flex-col items-center justify-center p-4 border rounded-lg ${paymentMethod === 'boleto' ? 'border-brand-accent ring-2 ring-brand-accent' : 'border-gray-300'}`}>
-                    <BarcodeIcon className="h-8 w-8 text-gray-600 mb-2" /> <span className="font-semibold">Boleto</span>
+                <button 
+                  type="button" 
+                  onClick={() => setPaymentMethod('boleto')} 
+                  className={`flex flex-col items-center justify-center p-4 border rounded-lg ${paymentMethod === 'boleto' ? 'border-brand-accent ring-2 ring-brand-accent' : 'border-gray-300'}`}
+                >
+                    <BarcodeIcon className="h-8 w-8 text-gray-600 mb-2" /> 
+                    <span className="font-semibold">Boleto Bancário</span>
                 </button>
             </div>
             
-            {paymentMethod === 'credit_card' && (
-                <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-                    <h3 className="font-semibold text-lg">Dados do Cartão</h3>
-                    <InputField id="cardNumber" name="cardNumber" label="Número do Cartão *" value={formData.cardNumber} onChange={handleFormChange} required placeholder="4444 2222 2222 2222" />
-                    <InputField id="cardName" name="cardName" label="Nome no Cartão *" value={formData.cardName} onChange={handleFormChange} required />
-                    <div className="grid grid-cols-2 gap-4">
-                        <InputField id="cardExpiry" name="cardExpiry" label="Validade *" value={formData.cardExpiry} onChange={handleFormChange} required placeholder="12/2026" />
-                        <InputField id="cardCvv" name="cardCvv" label="CVV *" value={formData.cardCvv} onChange={handleFormChange} required placeholder="***" />
-                    </div>
-                </div>
-            )}
-             {paymentMethod === 'boleto' && (
-                <div className="p-4 border rounded-lg bg-gray-50 text-center">
-                    <p>O boleto será gerado e enviado para o seu e-mail.</p>
-                </div>
-             )}
+            <div className="p-4 border rounded-lg bg-gray-50 text-center">
+                <p>O boleto será gerado e enviado para o seu e-mail.</p>
+            </div>
 
             {paymentError && (
               <div className="mt-4 p-4 bg-red-600 text-white rounded-md text-sm font-semibold text-center">
@@ -289,41 +293,42 @@ const DonatePage: React.FC = () => {
 
             <div className="flex justify-between pt-6">
                 <button type="button" onClick={() => setStep(3)} className="px-6 py-2 bg-gray-200 text-gray-700 font-bold rounded-md hover:bg-gray-300">Voltar</button>
-                <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 disabled:opacity-50">
+                <button type="submit" form="donationForm" disabled={isSubmitting} className="px-6 py-2 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 disabled:opacity-50">
                     {isSubmitting ? 'Processando...' : `Doar R$ ${Number(amount).toFixed(2)}`}
                 </button>
             </div>
-          </form>
-        );
-      case 5: // Credit Card Success
-        return (
-          <div className="text-center py-10">
-            <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-800">Obrigado pela sua doação!</h2>
-            <p className="text-gray-600 mt-2">Sua contribuição foi processada com sucesso. Você receberá uma confirmação por e-mail.</p>
-            <p className="mt-4 text-sm">Redirecionando para a página da campanha...</p>
           </div>
         );
-      case 6: // Boleto Success
+      case 5: // Success
         return (
           <div className="text-center py-10">
             <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-800">Obrigado pela sua doação!</h2>
-            <p className="text-gray-600 mt-2">Seu boleto foi gerado com sucesso.</p>
-            <p className="text-gray-600 mt-2">Clique no botão abaixo para acessar e imprimir seu boleto.</p>
+            <p className="text-gray-600 mt-2">Sua contribuição de <span className="font-bold">R$ {Number(amount).toFixed(2)}</span> para "{campaign.title}" foi processada com sucesso.</p>
             
             {boletoLink && (
-              <a 
-                href={boletoLink} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="mt-6 inline-block px-6 py-3 bg-brand-accent text-white font-bold rounded-md hover:opacity-90 transition-opacity"
-              >
-                Acessar Boleto
-              </a>
+              <div className="mt-6">
+                <p className="text-gray-600 mb-4">Clique no botão abaixo para acessar e imprimir seu boleto:</p>
+                <a 
+                  href={boletoLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-block px-6 py-3 bg-brand-accent text-white font-bold rounded-md hover:opacity-90 transition-opacity"
+                >
+                  Acessar Boleto
+                </a>
+              </div>
             )}
             
-            <p className="mt-4 text-sm">Você também receberá o link por e-mail.</p>
+            {digitableLine && (
+              <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">Linha Digitável:</p>
+                <p className="font-mono text-sm break-all">{digitableLine}</p>
+              </div>
+            )}
+            
+            <p className="mt-6 text-sm text-gray-500">Você também receberá o boleto por e-mail.</p>
+            <p className="mt-4 text-sm">Redirecionando para a página da campanha...</p>
           </div>
         );
       default: return null;
@@ -340,7 +345,9 @@ const DonatePage: React.FC = () => {
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="p-8">
-            {renderStep()}
+            <form id="donationForm" onSubmit={processDonation}>
+              {renderStep()}
+            </form>
           </div>
         </div>
       </div>
