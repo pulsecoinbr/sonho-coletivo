@@ -1,31 +1,4 @@
-// dentro de App.tsx (no topo, antes do componente principal)
-// FIX: Consolidated duplicate React imports into a single import statement.
 import React, { Component, useState, useCallback, useEffect } from 'react';
-
-class ErrorBoundary extends Component<{children: React.ReactNode}, {hasError:boolean, error?: any}> {
-  constructor(props:any) {
-    super(props);
-    this.state = { hasError: false, error: undefined };
-  }
-  static getDerivedStateFromError(error:any) {
-    return { hasError: true, error };
-  }
-  componentDidCatch(error:any, info:any) {
-    console.error('ErrorBoundary caught', error, info);
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{padding:20, color:'red', fontFamily:'monospace'}}>
-          <h3>Erro ao carregar a aplicação</h3>
-          <div>{String(this.state.error?.message)}</div>
-          <pre>{String(this.state.error?.stack)}</pre>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -44,6 +17,12 @@ import HowItWorksPage from './pages/HowItWorksPage';
 import WhatsAppButton from './components/WhatsAppButton';
 import { Campaign, User, DonorInfo, DonorMessage, Testimonial, Donation } from './types';
 import { AppContext } from './context';
+
+// Admin Pages
+import AdminLoginPage from './pages/AdminLoginPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminVisualIdentityPage from './pages/AdminVisualIdentityPage';
+import AdminImagesBannersPage from './pages/AdminImagesBannersPage';
 
 // Initial Mock Data
 const initialCampaigns: Campaign[] = [
@@ -301,6 +280,7 @@ const AppWithProvider: React.FC = () => {
             <Header />
             <main className="flex-grow">
               <Routes>
+                {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
@@ -313,6 +293,12 @@ const AppWithProvider: React.FC = () => {
                 <Route path="/donate/:id" element={<DonatePage />} />
                 <Route path="/create" element={<CreateCampaignPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLoginPage />} />
+                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route path="/admin/visual-identity" element={<AdminVisualIdentityPage />} />
+                <Route path="/admin/images-banners" element={<AdminImagesBannersPage />} />
               </Routes>
             </main>
             <Footer />
