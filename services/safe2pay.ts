@@ -7,6 +7,14 @@ const SAFE2PAY_SECRET_KEY = process.env.SAFE2PAY_SECRET_KEY || '';
 console.log('Safe2Pay API Key:', SAFE2PAY_API_KEY ? 'Set' : 'Not set');
 console.log('Safe2Pay Secret Key:', SAFE2PAY_SECRET_KEY ? 'Set' : 'Not set');
 
+const sandboxApi = axios.create({
+  baseURL: 'https://api.safe2pay.com.br/v2', // Sandbox URL
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': SAFE2PAY_API_KEY,
+  },
+});
+
 export interface Safe2PayResponse {
   HasError: boolean;
   Message: string;
@@ -53,37 +61,56 @@ export interface BoletoPaymentData {
   Reference: string;
 }
 
-// Mock implementation for testing
 export const createBoletoPayment = async (data: BoletoPaymentData): Promise<Safe2PayResponse> => {
   try {
-    console.log('Sending Safe2Pay request (MOCK):', JSON.stringify(data, null, 2));
+    console.log('Sending Safe2Pay request:', JSON.stringify(data, null, 2));
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Tentar múltiplos endpoints possíveis para boletos
+    const endpoints = [
+      '/Boleto',
+      '/BoletoGerar', 
+      '/Payment/Boleto',
+      '/Boleto/Create',
+      '/Payment/Boleto/Create'
+    ];
     
-    // Generate mock boleto data
-    const mockTransactionId = Math.floor(Math.random() * 1000000);
-    const mockBoletoLink = `https://boleto.mock.com/boleto_${mockTransactionId}.pdf`;
-    const mockDigitableLine = `23790.81210 00000.123456 12345.678901 1 12345670000012345`;
+    let lastError: any = null;
     
-    const mockResponse: Safe2PayResponse = {
-      HasError: false,
-      Message: "Boleto gerado com sucesso",
-      ResponseDetail: {
-        Id: mockTransactionId,
-        Status: "Pending",
-        Message: "Boleto gerado e enviado por e-mail",
-        LinkBoleto: mockBoletoLink,
-        DigitableLine: mockDigitableLine,
-        Barcode: mockDigitableLine.replace(/\D/g, '').slice(0, 44)
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`Trying endpoint: ${endpoint}`);
+        const response = await sandboxApi.post(endpoint, data);
+        console.log(`Success with ${endpoint}:`, response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error(`Failed with ${endpoint}:`, error.response?.status);
+        lastError = error;
+        
+        // Se for 404, tenta o próximo endpoint
+        if (error.response?.status === 404) {
+          continue;
+        }
+        
+        // Se for outro erro, para de tentar
+        break;
       }
-    };
+    }
     
-    console.log('Safe2Pay mock response:', mockResponse);
-    
-    return mockResponse;
+    // Se todos os endpoints falharam, lança o último erro
+    throw lastError;
   } catch (error: any) {
-    console.error('Error creating boleto payment (MOCK):', error);
+    console.error('Error creating boleto payment:', error);
+    
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+      console.error('Error response headers:', error.response.headers);
+    } else if (error.request) {
+      console.error('Error request:', error.request);
+    } else {
+      console.error('Error message:', error.message);
+    }
+    
     throw error;
   }
 };
@@ -92,7 +119,7 @@ export const createBoletoPayment = async (data: BoletoPaymentData): Promise<Safe
 export const handlePaymentCallback = async (callbackData: any): Promise<void> => {
   try {
     // Process the callback data here
-    console.log('Payment callback received (MOCK):', callbackData);
+    console.log('Payment callback received:', callbackData);
     
     // Update payment status in your database
     // Save Reference and TransactionId for reconciliation
@@ -101,7 +128,7 @@ export const handlePaymentCallback = async (callbackData: any): Promise<void> =>
     // const { Reference, TransactionId, Status } = callbackData;
     // Update payment status in database based on Reference
   } catch (error) {
-    console.error('Error handling payment callback (MOCK):', error);
+    console.error('Error handling payment callback:', error);
     throw error;
   }
 };
