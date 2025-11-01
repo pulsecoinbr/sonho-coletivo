@@ -21,7 +21,7 @@ const AdminLoginPage: React.FC = () => {
                 // Store admin session
                 localStorage.setItem('isAdminLoggedIn', 'true');
                 localStorage.setItem('adminEmail', email);
-                navigate('/admin/dashboard');
+                navigate('/dashboard');
             } else {
                 setError('E-mail ou senha incorretos.');
             }

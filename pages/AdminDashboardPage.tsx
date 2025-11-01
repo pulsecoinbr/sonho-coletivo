@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CloudHeartIcon, UsersIcon, CampaignsIcon, FinancialIcon, SettingsIcon, BarChartIcon, TrendingUpIcon, TrendingDownIcon } from '../components/icons';
+import { CloudHeartIcon, UsersIcon, CampaignsIcon, FinancialIcon, SettingsIcon, BarChartIcon } from '../components/icons';
 
 interface AdminStats {
     totalUsers: number;
@@ -38,7 +38,7 @@ const AdminDashboardPage: React.FC = () => {
     const handleLogout = () => {
         localStorage.removeItem('isAdminLoggedIn');
         localStorage.removeItem('adminEmail');
-        navigate('/admin/login');
+        navigate('/login');
     };
 
     const StatCard: React.FC<{ title: string; value: string; icon: React.ElementType; color: string }> = ({ title, value, icon: Icon, color }) => (
@@ -57,29 +57,6 @@ const AdminDashboardPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-100">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                            <Link to="/admin" className="flex items-center space-x-2 text-2xl font-bold text-brand-primary">
-                                <CloudHeartIcon className="h-8 w-8 text-brand-secondary" />
-                                <span>Painel Administrativo — Sonho Coletivo</span>
-                            </Link>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <span className="text-sm text-gray-600">Administrador</span>
-                            <button 
-                                onClick={handleLogout}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                            >
-                                Sair
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -116,7 +93,7 @@ const AdminDashboardPage: React.FC = () => {
 
                 {/* Menu Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Link to="/admin/visual-identity" className="group">
+                    <Link to="/visual-identity" className="group">
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-4">
                                 <div className="p-3 bg-blue-100 rounded-full">
@@ -128,7 +105,7 @@ const AdminDashboardPage: React.FC = () => {
                         </div>
                     </Link>
 
-                    <Link to="/admin/images-banners" className="group">
+                    <Link to="/images-banners" className="group">
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-4">
                                 <div className="p-3 bg-green-100 rounded-full">
@@ -140,7 +117,7 @@ const AdminDashboardPage: React.FC = () => {
                         </div>
                     </Link>
 
-                    <Link to="/admin/donations" className="group">
+                    <Link to="/donations" className="group">
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-4">
                                 <div className="p-3 bg-purple-100 rounded-full">
@@ -152,7 +129,7 @@ const AdminDashboardPage: React.FC = () => {
                         </div>
                     </Link>
 
-                    <Link to="/admin/analytics" className="group">
+                    <Link to="/analytics" className="group">
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-4">
                                 <div className="p-3 bg-orange-100 rounded-full">
@@ -164,7 +141,7 @@ const AdminDashboardPage: React.FC = () => {
                         </div>
                     </Link>
 
-                    <Link to="/admin/settings" className="group">
+                    <Link to="/settings" className="group">
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center mb-4">
                                 <div className="p-3 bg-gray-100 rounded-full">
