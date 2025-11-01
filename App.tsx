@@ -17,15 +17,6 @@ import HowItWorksPage from './pages/HowItWorksPage';
 import WhatsAppButton from './components/WhatsAppButton';
 import { Campaign, User, DonorInfo, DonorMessage, Testimonial, Donation } from './types';
 import { AppContext } from './context';
-
-// Admin Pages
-import AdminLoginPage from './pages/AdminLoginPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import AdminVisualIdentityPage from './pages/AdminVisualIdentityPage';
-import AdminImagesBannersPage from './pages/AdminImagesBannersPage';
-import AdminDonationsPage from './pages/AdminDonationsPage';
-import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
-import AdminSettingsPage from './pages/AdminSettingsPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Initial Mock Data
@@ -282,15 +273,6 @@ const AppWithProvider: React.FC = () => {
             <Route path="/donate/:id" element={<DonatePage />} />
             <Route path="/create" element={<CreateCampaignPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/admin" element={<AdminDashboardPage />} />
-            <Route path="/admin/visual-identity" element={<AdminVisualIdentityPage />} />
-            <Route path="/admin/images-banners" element={<AdminImagesBannersPage />} />
-            <Route path="/admin/donations" element={<AdminDonationsPage />} />
-            <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-            <Route path="/admin/settings" element={<AdminSettingsPage />} />
           </Routes>
         </main>
         <Footer />

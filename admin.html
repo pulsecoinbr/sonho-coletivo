@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Sonho Coletivo</title>
+    <meta http-equiv="Content-Security-Policy" 
+      content="default-src * 'unsafe-inline' 'unsafe-eval' blob: data:; 
+               script-src * 'unsafe-inline' 'unsafe-eval' blob: data:;
+               style-src * 'unsafe-inline' blob: data:;
+               connect-src * blob: data:;
+               img-src * data: blob:;">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'brand-primary': '#1E40AF', // Dark Blue
+              'brand-secondary': '#3B82F6', // Bright Blue
+              'brand-light': '#EFF6FF', // Light Blue BG
+              'brand-dark': '#111827', // Dark Gray/Blue Text
+              'brand-accent': '#3B82F6', // Accent Blue
+            },
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.4",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-100">
+    <div id="root"></div>
+    <script type="module" src="/index-admin.tsx"></script>
+  </body>
+</html>
