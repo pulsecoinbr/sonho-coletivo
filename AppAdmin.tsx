@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { CloudHeartIcon } from './components/icons';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
@@ -11,8 +11,6 @@ import AdminSettingsPage from './pages/AdminSettingsPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const AdminAppWithProvider: React.FC = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-white shadow-sm border-b">
