@@ -1,7 +1,8 @@
-import React, { useState, useContext, useEffect, useCallback } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '@/context/AppContext';
 import InputField from '@/components/InputField';
+import ImageUpload from '@/components/ImageUpload';
 import { uploadImage } from '@/services/storageService';
 import { supabase } from '@/integrations/supabase/client';
 import { GoogleGenAI } from "@google/genai";
@@ -11,8 +12,9 @@ const CreateCampaignPage: React.FC = () => {
     const navigate = useNavigate();
     const { session } = useContext(AppContext);
     const [isImproving, setIsImproving] = useState(false);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [images, setImages] = useState<File[]>([]);
+    const [mainImageIndex, setMainImageIndex] = useState<number>(0);
 
     useEffect(() => {
         if (!session) {
@@ -28,21 +30,11 @@ const CreateCampaignPage: React.FC = () => {
         description: '',
         city: '',
         state: '',
-        imageFile: null as File | null,
     });
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setFormData(prev => ({ ...prev, imageFile: file }));
-            
-            // Create preview
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
+    const handleImagesChange = (newImages: File[], newMainImageIndex: number) => {
+        setImages(newImages);
+        setMainImageIndex(newMainImageIndex);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -87,14 +79,26 @@ const CreateCampaignPage: React.FC = () => {
             return;
         }
         
+        if (images.length === 0) {
+            alert("Por favor, envie pelo menos uma imagem para sua campanha.");
+            return;
+        }
+        
         try {
-            let imageUrl = '';
+            setIsUploading(true);
+            const imageUrls: string[] = [];
             
-            // Upload image if provided
-            if (formData.imageFile) {
-                setIsUploading(true);
-                imageUrl = await uploadImage(formData.imageFile, 'campaigns', 'images');
-                setIsUploading(false);
+            // Upload all images
+            for (let i = 0; i < images.length; i++) {
+                const imageUrl = await uploadImage(images[i], 'campaigns', 'images');
+                imageUrls.push(imageUrl);
+            }
+            
+            // Ensure main image is first
+            if (mainImageIndex > 0 && imageUrls.length > 0) {
+                const mainImage = imageUrls[mainImageIndex];
+                imageUrls.splice(mainImageIndex, 1);
+                imageUrls.unshift(mainImage);
             }
             
             // Create campaign in database
@@ -109,7 +113,8 @@ const CreateCampaignPage: React.FC = () => {
                         goal: parseFloat(formData.goal),
                         city: formData.city,
                         state: formData.state,
-                        image_url: imageUrl,
+                        images: imageUrls,
+                        image_url: imageUrls[0], // First image is the main one
                         end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                     }
                 ])
@@ -123,6 +128,7 @@ const CreateCampaignPage: React.FC = () => {
         } catch (error) {
             console.error('Error creating campaign:', error);
             alert('Ocorreu um erro ao criar a campanha. Por favor, tente novamente.');
+        } finally {
             setIsUploading(false);
         }
     };
@@ -182,7 +188,7 @@ const CreateCampaignPage: React.FC = () => {
                     )}
                     {step === 2 && (
                         <div className="space-y-6 animate-fade-in">
-                             <h2 className="text-xl font-semibold text-gray-700">2. Detalhes e Localização</h2>
+                             <h2 className="text-xl font-semibold text-gray-700">2. Detalhes e Imagens</h2>
                              <div>
                                 <div className="flex justify-between items-center mb-1">
                                     <label htmlFor="description" className="block text-sm font-medium text-gray-700">Conte sua história *</label>
@@ -194,51 +200,11 @@ const CreateCampaignPage: React.FC = () => {
                                 <textarea id="description" name="description" value={formData.description} onChange={handleInputChange} rows={8} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-accent focus:border-brand-accent" placeholder="Descreva o motivo da sua campanha, como os fundos serão usados, etc." required></textarea>
                             </div>
                             
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Imagem Principal</label>
-                                <div className="mt-1 flex items-center">
-                                    {imagePreview ? (
-                                        <div className="relative">
-                                            <img src={imagePreview} alt="Preview" className="h-32 w-32 object-cover rounded-md" />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setFormData(prev => ({ ...prev, imageFile: null }));
-                                                    setImagePreview(null);
-                                                }}
-                                                className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-                                            >
-                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                                            <div className="space-y-1 text-center">
-                                                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
-                                                <div className="flex text-sm text-gray-600">
-                                                    <label htmlFor="imageFile" className="relative cursor-pointer bg-white rounded-md font-medium text-brand-primary hover:text-brand-secondary">
-                                                        <span>Upload de arquivo</span>
-                                                        <input 
-                                                            id="imageFile" 
-                                                            name="imageFile" 
-                                                            type="file" 
-                                                            className="sr-only" 
-                                                            accept="image/*" 
-                                                            onChange={handleImageChange}
-                                                        />
-                                                    </label>
-                                                    <p className="pl-1">ou arraste e solte</p>
-                                                </div>
-                                                <p className="text-xs text-gray-500">PNG, JPG até 10MB</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            <ImageUpload 
+                              onImagesChange={handleImagesChange}
+                              maxImages={5}
+                              maxSizeMB={10}
+                            />
                             
                             <div className="grid grid-cols-2 gap-4">
                                <InputField id="city" name="city" label="Cidade *" value={formData.city} onChange={handleInputChange} required />
@@ -258,10 +224,15 @@ const CreateCampaignPage: React.FC = () => {
                                 <p><strong>Causa:</strong> {formData.category}</p>
                                 <p><strong>Meta:</strong> R$ {formData.goal}</p>
                                 <p><strong>Local:</strong> {formData.city}, {formData.state}</p>
-                                {imagePreview && (
-                                    <div>
-                                        <strong>Imagem:</strong>
-                                        <img src={imagePreview} alt="Preview" className="mt-2 h-24 w-24 object-cover rounded-md" />
+                                <p><strong>Imagens:</strong> {images.length} imagem(s) selecionada(s)</p>
+                                {images.length > 0 && (
+                                    <div className="mt-2">
+                                        <p className="text-sm text-gray-600">Imagem principal:</p>
+                                        <img 
+                                            src={URL.createObjectURL(images[mainImageIndex])} 
+                                            alt="Main preview" 
+                                            className="mt-2 h-24 w-24 object-cover rounded-md" 
+                                        />
                                     </div>
                                 )}
                              </div>
