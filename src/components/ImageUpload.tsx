@@ -2,12 +2,14 @@ import React, { useState, useRef } from 'react';
 
 interface ImageUploadProps {
   onImagesChange: (images: File[], mainImageIndex: number) => void;
+  onMainImageUrlChange: (url: string) => void;
   maxImages?: number;
   maxSizeMB?: number;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ 
   onImagesChange, 
+  onMainImageUrlChange,
   maxImages = 5, 
   maxSizeMB = 10 
 }) => {
@@ -15,6 +17,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [mainImageIndex, setMainImageIndex] = useState<number>(0);
   const [error, setError] = useState<string>('');
+  const [mainImageUrl, setMainImageUrl] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
@@ -110,6 +113,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     onImagesChange(images, index);
   };
 
+  const handleMainImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    setMainImageUrl(url);
+    onMainImageUrlChange(url);
+  };
+
   const triggerFileInput = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -120,37 +129,42 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Imagens da Campanha *
+          Imagem Principal *
         </label>
-        <p className="text-xs text-gray-500 mb-3">
-          Envie até {maxImages} imagens (JPEG, PNG, GIF, WebP) - máximo {maxSizeMB}MB cada
-        </p>
-        
-        <div 
-          className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-brand-accent transition-colors"
-          onClick={triggerFileInput}
-        >
-          <div className="space-y-1 text-center">
-            <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <div className="flex text-sm text-gray-600">
-              <span className="relative cursor-pointer bg-white rounded-md font-medium text-brand-primary hover:text-brand-secondary">
-                <span>Clique para enviar</span>
-                <input 
-                  ref={fileInputRef}
-                  type="file" 
-                  className="sr-only" 
-                  accept="image/*" 
-                  multiple 
-                  onChange={handleFileChange}
-                />
-              </span>
-            </div>
-            <p className="text-xs text-gray-500">
-              {images.length} de {maxImages} imagens selecionadas
-            </p>
+        <div className="space-y-3">
+          <div className="flex space-x-2">
+            <button
+              type="button"
+              onClick={triggerFileInput}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Upload de Imagem
+            </button>
+            <button
+              type="button"
+              onClick={() => document.getElementById('main-image-url')?.focus()}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Inserir URL
+            </button>
           </div>
+          
+          <input
+            id="main-image-url"
+            type="url"
+            value={mainImageUrl}
+            onChange={handleMainImageUrlChange}
+            placeholder="https://example.com/imagem.jpg"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-accent focus:border-brand-accent"
+          />
+          
+          <input
+            ref={fileInputRef}
+            type="file" 
+            accept="image/*" 
+            onChange={handleFileChange}
+            className="hidden"
+          />
         </div>
       </div>
 
@@ -160,9 +174,38 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         </div>
       )}
 
+      {mainImageUrl && (
+        <div className="mt-4">
+          <p className="text-sm font-medium text-gray-700 mb-2">URL da Imagem Principal:</p>
+          <div className="flex items-center space-x-3">
+            <img 
+              src={mainImageUrl} 
+              alt="Preview da URL" 
+              className="h-20 w-20 object-cover rounded-md border"
+              onError={(e) => {
+                e.currentTarget.src = 'https://via.placeholder.com/80';
+              }}
+            />
+            <div className="flex-1">
+              <p className="text-sm text-gray-600 truncate">{mainImageUrl}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setMainImageUrl('');
+                  onMainImageUrlChange('');
+                }}
+                className="mt-1 text-sm text-red-600 hover:text-red-800"
+              >
+                Remover URL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {imagePreviews.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Imagens Selecionadas:</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Imagens Adicionais (até {maxImages - 1}):</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {imagePreviews.map((preview, index) => (
               <div key={index} className="relative group">
@@ -172,26 +215,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                     alt={`Preview ${index + 1}`} 
                     className="w-full h-full object-cover"
                   />
-                  {index === mainImageIndex && (
-                    <div className="absolute top-1 left-1 bg-brand-accent text-white text-xs px-2 py-1 rounded">
-                      Principal
-                    </div>
-                  )}
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAsMainImage(index);
-                        }}
-                        className="bg-white text-gray-800 rounded-full p-1 shadow-md hover:bg-gray-100"
-                        title="Definir como principal"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </button>
                       <button
                         type="button"
                         onClick={(e) => {

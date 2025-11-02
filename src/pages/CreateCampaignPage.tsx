@@ -15,6 +15,7 @@ const CreateCampaignPage: React.FC = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [images, setImages] = useState<File[]>([]);
     const [mainImageIndex, setMainImageIndex] = useState<number>(0);
+    const [mainImageUrl, setMainImageUrl] = useState<string>('');
 
     useEffect(() => {
         if (!session) {
@@ -35,6 +36,10 @@ const CreateCampaignPage: React.FC = () => {
     const handleImagesChange = (newImages: File[], newMainImageIndex: number) => {
         setImages(newImages);
         setMainImageIndex(newMainImageIndex);
+    };
+
+    const handleMainImageUrlChange = (url: string) => {
+        setMainImageUrl(url);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -79,7 +84,7 @@ const CreateCampaignPage: React.FC = () => {
             return;
         }
         
-        if (images.length === 0) {
+        if (!mainImageUrl && images.length === 0) {
             alert("Por favor, envie pelo menos uma imagem para sua campanha.");
             return;
         }
@@ -88,17 +93,10 @@ const CreateCampaignPage: React.FC = () => {
             setIsUploading(true);
             const imageUrls: string[] = [];
             
-            // Upload all images
+            // Upload additional images if any
             for (let i = 0; i < images.length; i++) {
                 const imageUrl = await uploadImage(images[i], 'campaigns', 'images');
                 imageUrls.push(imageUrl);
-            }
-            
-            // Ensure main image is first
-            if (mainImageIndex > 0 && imageUrls.length > 0) {
-                const mainImage = imageUrls[mainImageIndex];
-                imageUrls.splice(mainImageIndex, 1);
-                imageUrls.unshift(mainImage);
             }
             
             // Create campaign in database
@@ -114,7 +112,7 @@ const CreateCampaignPage: React.FC = () => {
                         city: formData.city,
                         state: formData.state,
                         images: imageUrls,
-                        image_url: imageUrls[0], // First image is the main one
+                        image_url: mainImageUrl || (imageUrls.length > 0 ? imageUrls[0] : ''),
                         end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                     }
                 ])
@@ -202,6 +200,7 @@ const CreateCampaignPage: React.FC = () => {
                             
                             <ImageUpload 
                               onImagesChange={handleImagesChange}
+                              onMainImageUrlChange={handleMainImageUrlChange}
                               maxImages={5}
                               maxSizeMB={10}
                             />
@@ -224,15 +223,32 @@ const CreateCampaignPage: React.FC = () => {
                                 <p><strong>Causa:</strong> {formData.category}</p>
                                 <p><strong>Meta:</strong> R$ {formData.goal}</p>
                                 <p><strong>Local:</strong> {formData.city}, {formData.state}</p>
-                                <p><strong>Imagens:</strong> {images.length} imagem(s) selecionada(s)</p>
+                                <p><strong>Imagem Principal:</strong> {mainImageUrl ? 'URL fornecida' : 'Upload de imagem'}</p>
+                                <p><strong>Imagens Adicionais:</strong> {images.length} imagem(s) selecionada(s)</p>
+                                {mainImageUrl && (
+                                    <div className="mt-2">
+                                        <p className="text-sm text-gray-600">URL da Imagem Principal:</p>
+                                        <p className="text-xs text-gray-500 truncate">{mainImageUrl}</p>
+                                    </div>
+                                )}
                                 {images.length > 0 && (
                                     <div className="mt-2">
-                                        <p className="text-sm text-gray-600">Imagem principal:</p>
-                                        <img 
-                                            src={URL.createObjectURL(images[mainImageIndex])} 
-                                            alt="Main preview" 
-                                            className="mt-2 h-24 w-24 object-cover rounded-md" 
-                                        />
+                                        <p className="text-sm text-gray-600">Imagens Adicionais:</p>
+                                        <div className="flex space-x-2 mt-1">
+                                            {images.slice(0, 3).map((image, index) => (
+                                                <img 
+                                                    key={index}
+                                                    src={URL.createObjectURL(image)} 
+                                                    alt={`Additional ${index + 1}`} 
+                                                    className="h-16 w-16 object-cover rounded-md border"
+                                                />
+                                            ))}
+                                            {images.length > 3 && (
+                                                <div className="h-16 w-16 bg-gray-200 rounded-md border flex items-center justify-center">
+                                                    <span className="text-xs text-gray-600">+{images.length - 3}</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                              </div>
