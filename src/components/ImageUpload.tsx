@@ -120,7 +120,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Imagens da Campanha
+          Imagens da Campanha *
         </label>
         <p className="text-xs text-gray-500 mb-3">
           Envie até {maxImages} imagens (JPEG, PNG, GIF, WebP) - máximo {maxSizeMB}MB cada

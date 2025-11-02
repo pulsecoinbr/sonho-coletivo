@@ -20,7 +20,11 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-1 transition-all duration-300 flex flex-col">
       <Link to={`/campaign/${campaign.id}`} className="block">
-        <img className="h-48 w-full object-cover" src={campaign.image_url || 'https://picsum.photos/seed/campaign/600/400'} alt={campaign.title} />
+        <img 
+          className="h-48 w-full object-cover" 
+          src={campaign.image_url || 'https://picsum.photos/seed/campaign/600/400'} 
+          alt={campaign.title} 
+        />
       </Link>
       <div className="p-4 flex flex-col flex-grow">
         <p className="text-xs text-gray-500 uppercase font-semibold">{campaign.category}</p>
@@ -29,8 +33,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
         </h3>
         <div className="flex items-center text-sm text-gray-600 mb-4">
             <span>Por {campaign.user_id}</span>
-            {/* FIX: Removed invalid 'title' prop from CheckCircleIcon component. */}
-            {true && <CheckCircleIcon className="h-4 w-4 text-blue-500 ml-1" />}
+            {campaign.user_verified && <CheckCircleIcon className="h-4 w-4 text-blue-500 ml-1" />}
         </div>
         
         <div className="mt-auto">
