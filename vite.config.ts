@@ -13,11 +13,11 @@ export default defineConfig(({ mode }) => {
       define: {
         'process.env.SAFE2PAY_API_KEY': JSON.stringify(env.SAFE2PAY_API_KEY),
         'process.env.SAFE2PAY_SECRET_KEY': JSON.stringify(env.SAFE2PAY_SECRET_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY) // Corrected variable name
       },
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '.'),
+          '@': path.resolve(__dirname, './src'), // Adjusted alias to point to src
         }
       },
       build: {

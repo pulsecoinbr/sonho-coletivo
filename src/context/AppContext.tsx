@@ -4,7 +4,7 @@ import { Session } from '@supabase/supabase-js';
 
 interface AppContextType {
   session: Session | null;
-  user: any;
+  user: any; // This will hold the profile data from the 'profiles' table
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<any>;
@@ -20,7 +20,7 @@ export const AppContext = createContext<AppContextType>({
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(null); // State to hold user profile data
 
   useEffect(() => {
     const getSession = async () => {
@@ -38,7 +38,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (session) {
         fetchUser(session.user.id);
       } else {
-        setUser(null);
+        setUser(null); // Clear user profile on sign out
       }
     });
 
@@ -81,6 +81,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     if (data.user) {
+      // The handle_new_user function in Supabase will automatically create the profile.
+      // No need to manually insert here if the trigger is set up.
+      // However, if the trigger is not set up or needs to be explicit,
+      // you might insert here, but it's generally better to rely on the trigger.
+      // For now, I'll keep the manual insert as a fallback/example if the trigger isn't active.
       await supabase
         .from('profiles')
         .insert([

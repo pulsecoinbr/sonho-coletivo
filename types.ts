@@ -2,19 +2,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  passwordHash: string; // In a real app, never store plain text passwords
-  cpf: string;
-  phone: string;
-  dob: string;
-  address: {
-    zip: string;
-    street: string;
-    number: string;
-    complement?: string;
-    district: string;
-    city: string;
-    state: string;
-  };
+  // passwordHash is no longer stored directly in frontend context
+  // cpf, phone, dob, address will be part of the 'profiles' table or fetched separately
+  // For simplicity in frontend context, we'll rely on Supabase 'user' object and 'profiles' table
 }
 
 export interface DonorMessage {
@@ -40,8 +30,8 @@ export interface Campaign {
   category: string;
   goal: number;
   raised: number;
-  imageUrl: string;
-  galleryUrls: string[];
+  imageUrl: string; // Main image URL
+  galleryUrls: string[]; // Array of all image URLs
   city: string;
   state: string;
   endDate: string;

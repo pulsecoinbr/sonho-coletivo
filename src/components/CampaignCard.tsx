@@ -4,7 +4,7 @@ import ProgressBar from './ProgressBar';
 import { MapPinIcon, CheckCircleIcon } from './icons';
 
 interface CampaignCardProps {
-  campaign: any;
+  campaign: any; // Using 'any' for now, will define a proper interface later
 }
 
 const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
@@ -32,7 +32,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
             <Link to={`/campaign/${campaign.id}`} className="hover:text-brand-primary transition-colors">{campaign.title}</Link>
         </h3>
         <div className="flex items-center text-sm text-gray-600 mb-4">
-            <span>Por {campaign.user_id}</span>
+            <span>Por {campaign.user_id}</span> {/* Assuming user_id is enough for now, or fetch profile name */}
             {campaign.user_verified && <CheckCircleIcon className="h-4 w-4 text-blue-500 ml-1" />}
         </div>
         
