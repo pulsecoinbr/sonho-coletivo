@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CloudHeartIcon, UsersIcon, CampaignsIcon, FinancialIcon } from '@/components/icons';
+import { CloudHeartIcon, UsersIcon, CampaignsIcon, FinancialIcon, CheckCircleIcon, ArrowRightIcon } from '@/components/icons';
 
 const HowItWorksPage: React.FC = () => {
     return (
@@ -13,7 +13,7 @@ const HowItWorksPage: React.FC = () => {
                             Como a Sonho Coletivo Funciona
                         </h1>
                         <p className="text-xl text-white opacity-90">
-                            Arrecade dinheiro para realizar sonhos, ajudar causas ou superar dificuldades
+                            Transforme seus sonhos e causas em realidade com nossa plataforma de crowdfunding
                         </p>
                     </div>
                 </div>
@@ -25,7 +25,7 @@ const HowItWorksPage: React.FC = () => {
                     <div className="max-w-4xl mx-auto">
                         <div className="text-center mb-16">
                             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                                Transforme sua ideia em realidade em 3 passos simples
+                                Realize seu sonho em 3 passos simples
                             </h2>
                             <p className="text-gray-600 max-w-2xl mx-auto">
                                 Siga nosso processo fácil e intuitivo para criar sua campanha e começar a arrecadar
@@ -105,9 +105,7 @@ const HowItWorksPage: React.FC = () => {
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 mt-1">
                                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                                        <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
+                                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
                                     </div>
                                 </div>
                                 <div className="ml-4">
@@ -121,9 +119,7 @@ const HowItWorksPage: React.FC = () => {
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 mt-1">
                                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                                        <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
+                                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
                                     </div>
                                 </div>
                                 <div className="ml-4">
@@ -137,9 +133,7 @@ const HowItWorksPage: React.FC = () => {
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 mt-1">
                                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                                        <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
+                                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
                                     </div>
                                 </div>
                                 <div className="ml-4">
@@ -153,9 +147,7 @@ const HowItWorksPage: React.FC = () => {
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 mt-1">
                                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                                        <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
+                                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
                                     </div>
                                 </div>
                                 <div className="ml-4">
@@ -170,23 +162,26 @@ const HowItWorksPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* CTA Section */}
+            {/* Statistics Section */}
             <div className="py-16 bg-gradient-to-r from-brand-primary to-brand-secondary">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                            Pronto para realizar seu sonho?
+                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-12">
+                            Números que inspiram confiança
                         </h2>
-                        <p className="text-xl text-white opacity-90 mb-10">
-                            Junte-se a milhares de pessoas que já transformaram suas ideias em realidade
-                        </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            <Link to="/create" className="px-8 py-4 bg-white text-brand-primary font-bold rounded-lg text-lg hover:bg-gray-100 transition-colors shadow-lg">
-                                Criar minha campanha agora
-                            </Link>
-                            <Link to="/register" className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-lg text-lg hover:bg-white hover:text-brand-primary transition-colors">
-                                Criar conta gratuitamente
-                            </Link>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-6">
+                                <div className="text-4xl font-bold text-white mb-2">150+</div>
+                                <div className="text-white opacity-90">Campanhas Realizadas</div>
+                            </div>
+                            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-6">
+                                <div className="text-4xl font-bold text-white mb-2">R$ 500K+</div>
+                                <div className="text-white opacity-90">Arrecadados</div>
+                            </div>
+                            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-6">
+                                <div className="text-4xl font-bold text-white mb-2">89%</div>
+                                <div className="text-white opacity-90">Meta Atingida</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -242,6 +237,45 @@ const HowItWorksPage: React.FC = () => {
                                 </p>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* CTA Section */}
+            <div className="py-16 bg-gradient-to-r from-brand-primary to-brand-secondary">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                            Pronto para realizar seu sonho?
+                        </h2>
+                        <p className="text-xl text-white opacity-90 mb-10">
+                            Junte-se a milhares de pessoas que já transformaram suas ideias em realidade
+                        </p>
+                        <div className="flex flex-col sm:flex-row justify-center gap-4">
+                            <Link to="/create" className="px-8 py-4 bg-white text-brand-primary font-bold rounded-lg text-lg hover:bg-gray-100 transition-colors shadow-lg flex items-center justify-center">
+                                Criar minha campanha agora
+                                <ArrowRightIcon className="h-5 w-5 ml-2" />
+                            </Link>
+                            <Link to="/register" className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-lg text-lg hover:bg-white hover:text-brand-primary transition-colors flex items-center justify-center">
+                                Criar conta gratuitamente
+                                <ArrowRightIcon className="h-5 w-5 ml-2" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Final Info */}
+            <div className="py-12 bg-white">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <div className="flex items-center justify-center space-x-2 mb-4">
+                            <CloudHeartIcon className="h-8 w-8 text-brand-primary" />
+                            <span className="text-2xl font-bold text-gray-900">Sonho Coletivo</span>
+                        </div>
+                        <p className="text-gray-600">
+                            Transformando sonhos em realidade, uma doação de cada vez.
+                        </p>
                     </div>
                 </div>
             </div>
